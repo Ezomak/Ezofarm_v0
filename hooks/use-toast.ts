@@ -2,20 +2,11 @@
 
 // Inspired by react-hot-toast library
 import * as React from "react"
-import { useState } from "react"
 
-interface ToastState {
-  isVisible: boolean
-  type: "success" | "error" | "pending"
-  message: string
-  txHash?: string
-}
-
-interface ToastProps {
-  title?: React.ReactNode
-  description?: React.ReactNode
-  action?: React.ReactNode
-}
+import type {
+  ToastActionElement,
+  ToastProps,
+} from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
@@ -24,7 +15,7 @@ type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
-  action?: React.ReactNode
+  action?: ToastActionElement
 }
 
 const actionTypes = {
@@ -94,7 +85,9 @@ export const reducer = (state: State, action: Action): State => {
     case "UPDATE_TOAST":
       return {
         ...state,
-        toasts: state.toasts.map((t) => (t.id === action.toast.id ? { ...t, ...action.toast } : t)),
+        toasts: state.toasts.map((t) =>
+          t.id === action.toast.id ? { ...t, ...action.toast } : t
+        ),
       }
 
     case "DISMISS_TOAST": {
@@ -118,7 +111,7 @@ export const reducer = (state: State, action: Action): State => {
                 ...t,
                 open: false,
               }
-            : t,
+            : t
         ),
       }
     }
@@ -179,12 +172,6 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  const [toastState, setToastState] = useState<ToastState>({
-    isVisible: false,
-    type: "success",
-    message: "",
-  })
-
   const [state, setState] = React.useState<State>(memoryState)
 
   React.useEffect(() => {
@@ -197,33 +184,11 @@ function useToast() {
     }
   }, [state])
 
-  const showToast = (type: "success" | "error" | "pending", message: string, txHash?: string) => {
-    setToastState({
-      isVisible: true,
-      type,
-      message,
-      txHash,
-    })
-  }
-
-  const hideToast = () => {
-    setToastState((prev) => ({ ...prev, isVisible: false }))
-  }
-
-  const showSuccess = (message: string, txHash?: string) => showToast("success", message, txHash)
-  const showError = (message: string) => showToast("error", message)
-  const showPending = (message: string) => showToast("pending", message)
-
   return {
     ...state,
-    toast: toastState,
-    showSuccess,
-    showError,
-    showPending,
-    hideToast,
     toast,
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
 }
 
-export { useToast }
+export { useToast, toast }
